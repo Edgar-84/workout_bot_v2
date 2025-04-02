@@ -19,6 +19,15 @@ class ChatGPT:
 
         return response_from_openai
 
+    async def transcribe_audio_to_text(self, audio_file_path: str) -> str:
+        with open(audio_file_path, "rb") as audio_file:
+            transcription = self.client.audio.transcriptions.create(
+                model="whisper-1", 
+                file=audio_file
+            )
+        print(f"Text for file: {audio_file_path} is:\n{transcription.text}")
+        return transcription.text
+
     async def __create_thread(self):
         thread = self.client.beta.threads.create()
 

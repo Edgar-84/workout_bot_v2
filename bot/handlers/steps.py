@@ -30,12 +30,12 @@ async def count_tokens(text: str) -> int:
 async def process_voice_message(message: Message) -> str:
     voice_file = await message.bot.get_file(message.voice.file_id)
     voice_path = f"voice_messages/{message.voice.file_id}.ogg"
-    # os.makedirs("voice_messages", exist_ok=True)
-    # await message.bot.download_file(voice_file.file_path, voice_path)
-    # print(f"Voice message saved: {voice_path}")
-
-    # recognized_text = await recognize_speech(voice_path)
-    # return recognized_text
+    os.makedirs("voice_messages", exist_ok=True)
+    await message.bot.download_file(voice_file.file_path, voice_path)
+    print(f"Voice message saved: {voice_path}")
+    text = await gpt.transcribe_audio_to_text(voice_path)
+    os.remove(voice_path)
+    return text
 
 class UserRegistrationSteps:
     @staticmethod
@@ -62,31 +62,6 @@ class UserWorkoutCreationSteps:
         user_info = data.get(f"user_{user_id}", {})
         language_code = user_info.get("chosen_language", "en")
 
-        if message.voice:
-            await process_voice_message(message)
-            error_text = "At this moment voice messages are not supported!"
-            await message.answer(error_text)
-            await state.clear()
-            return False
-    
-        text = message.text.strip()
-        token_count = await count_tokens(text)
-        print(f"Token count: {token_count}, for text: {text}")
-        if token_count > 200:
-            error_text = texts.too_long_request.get(language_code)
-            await message.answer(error_text)
-            return False
-
-        return True
-
-    @staticmethod
-    async def generate_workout(message: Message, state: FSMContext):
-        user_id = message.from_user.id
-        data = await state.get_data()
-        user_info = data.get(f"user_{user_id}")
-        language_code = user_info.get("chosen_language", "en")
-        print(f"User message: {message.text}")
-
         # Check requests
         requests_count = await db.user_request_crud.get_requests_count(user_id=user_id)
         print(f"Requests count: {requests_count}")
@@ -94,8 +69,30 @@ class UserWorkoutCreationSteps:
             message_text = texts.too_many_requests_message.get(language_code)
             await message.answer(text=message_text)
             await state.clear()
-            return
+            return False
 
+        if message.voice:
+            text = await process_voice_message(message)
+        else:
+            text = message.text.strip()
+
+        token_count = await count_tokens(text)
+        print(f"Token count: {token_count}, for text: {text}")
+        if token_count > 200:
+            error_text = texts.too_long_request.get(language_code)
+            await message.answer(error_text)
+            await state.clear()
+            return False
+
+        return text
+
+    @staticmethod
+    async def generate_workout(message: Message, state: FSMContext, instruction: str):
+        user_id = message.from_user.id
+        data = await state.get_data()
+        user_info = data.get(f"user_{user_id}")
+        language_code = user_info.get("chosen_language", "en")
+        print(f"User message: {instruction}")
         # Save request
         await db.user_request_crud.save_request(user_id=user_id)
 
@@ -120,7 +117,7 @@ class UserWorkoutCreationSteps:
             Return result as json format with fields: name, description, reps, youtube_query.
             
             Statement:
-            {message.text}
+            {instruction}
             """
 
         generated_workout = await gpt.generate_workout(prompt=prompt)

@@ -29,11 +29,11 @@ async def user_workout_flow(router: Router):
     
     @router.message(states.UserWorkoutState.workout_duration)
     async def process_workout_request(message: Message, state: FSMContext):
-        is_valid = await workout_creation_steps.validate_message_content(message, state)
-        if not is_valid:
+        instruction = await workout_creation_steps.validate_message_content(message, state)
+        if not instruction:
             return
         
-        await workout_creation_steps.generate_workout(message=message, state=state)
+        await workout_creation_steps.generate_workout(message=message, state=state, instruction=instruction)
     
     @router.message(states.UserWorkoutState.generating)
     async def ignore_messages_during_generation(message: Message):
