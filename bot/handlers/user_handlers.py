@@ -34,6 +34,10 @@ async def user_workout_flow(router: Router):
             return
         
         await workout_creation_steps.generate_workout(message=message, state=state)
+    
+    @router.message(states.UserWorkoutState.generating)
+    async def ignore_messages_during_generation(message: Message):
+        return
 
 async def register_user_handlers(router: Router):   
     await user_registration(router=router)

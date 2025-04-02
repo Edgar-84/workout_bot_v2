@@ -101,6 +101,7 @@ class UserWorkoutCreationSteps:
 
         message_text = texts.generating_workout_text.get(language_code)
         await message.answer(text=message_text)
+        await state.set_state(UserWorkoutState.generating)
 
         prompt = f"""
             From the Statement, deduce these parameters:
@@ -123,18 +124,20 @@ class UserWorkoutCreationSteps:
             """
 
         generated_workout = await gpt.generate_workout(prompt=prompt)
-        exercise_number = 1
-        for exercise in generated_workout:
-            exersice_keys = list(exercise.keys())
-            exercise_title = exercise.get(exersice_keys[0])
-            exercise_description = exercise.get(exersice_keys[1])
-            exercise_reps = exercise.get(exersice_keys[2])
-            youtube_query = exercise.get(exersice_keys[3])
-            youtube_url = await youtube.get_url(query=youtube_query)
+        print(f"Generated workout count: {len(generated_workout)}")
+
+        youtube_queries = [exercise.get("youtube_query") for exercise in generated_workout]
+        youtube_urls = await asyncio.gather(*[youtube.get_url(query) for query in youtube_queries])
+        print(f"Generated YouTube links: {len(youtube_urls)}")
+        for exercise_number, (exercise, youtube_url) in enumerate(zip(generated_workout, youtube_urls), start=1):
+            exercise_title = exercise.get("name")
+            exercise_description = exercise.get("description")
+            exercise_reps = exercise.get("reps")
+
             exercise_message_text = texts.exercise_text.get(language_code).format(
                 exercise_number, exercise_title, exercise_description, exercise_reps, youtube_url)
+
             await message.answer(text=exercise_message_text)
-            exercise_number += 1
 
         last_message = texts.finish_message.get(language_code)
         await message.answer(text=last_message)
