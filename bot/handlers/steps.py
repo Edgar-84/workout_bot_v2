@@ -122,19 +122,19 @@ class UserWorkoutCreationSteps:
             {message.text}
             """
 
-        # generated_workout = await gpt.generate_workout(prompt=prompt)
-        # exercise_number = 1
-        # for exercise in generated_workout:
-        #     exersice_keys = list(exercise.keys())
-        #     exercise_title = exercise.get(exersice_keys[0])
-        #     exercise_description = exercise.get(exersice_keys[1])
-        #     exercise_reps = exercise.get(exersice_keys[2])
-        #     youtube_query = exercise.get(exersice_keys[3])
-        #     youtube_url = await youtube.get_url(query=youtube_query)
-        #     exercise_message_text = texts.exercise_text.get(language_code).format(
-        #         exercise_number, exercise_title, exercise_description, exercise_reps, youtube_url)
-        #     await message.answer(text=exercise_message_text)
-        #     exercise_number += 1
+        generated_workout = await gpt.generate_workout(prompt=prompt)
+        exercise_number = 1
+        for exercise in generated_workout:
+            exersice_keys = list(exercise.keys())
+            exercise_title = exercise.get(exersice_keys[0])
+            exercise_description = exercise.get(exersice_keys[1])
+            exercise_reps = exercise.get(exersice_keys[2])
+            youtube_query = exercise.get(exersice_keys[3])
+            youtube_url = await youtube.get_url(query=youtube_query)
+            exercise_message_text = texts.exercise_text.get(language_code).format(
+                exercise_number, exercise_title, exercise_description, exercise_reps, youtube_url)
+            await message.answer(text=exercise_message_text)
+            exercise_number += 1
 
         last_message = texts.finish_message.get(language_code)
         await message.answer(text=last_message)
