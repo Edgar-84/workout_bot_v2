@@ -398,12 +398,24 @@ last_message = {
 }
 
 finish_message = {
-    "ru": "Чтобы тренироваться снова, используй /workout.\n Чтобы перейти в сообщество, посетите @workout.",
-    "en": "To workout again, use /workout.\n To head over to the community, visit @workout.",
-    "es": "Para entrenar nuevamente, usa /workout.\n Para unirte a la comunidad, visita @workout.",
-    "fr": "Pour vous entraîner à nouveau, utilisez /workout.\n Pour rejoindre la communauté, visitez @workout.",
-    "de": "Um erneut zu trainieren, benutze /workout.\n Um der Community beizutreten, besuche @workout.",
-    "uk": "Щоб тренуватись знову, використовуйте /workout.\n Щоб перейти до спільноти, відвідайте @workout.",
-    "zh-cn": "再次开始锻炼，请使用 /workout。\n 加入社区，请访问 @workout。",
-    "it": "Per allenarti di nuovo, usa /workout.\n Per entrare nella community, visita @workout."
+    "en": "To workout again just talk or type",
+    "ru": "Чтобы снова начать тренировку, просто поговорите или напишите",
+    "es": "Para hacer ejercicio de nuevo, solo habla o escribe",
+    "fr": "Pour refaire de l'exercice, il suffit de parler ou de taper",
+    "de": "Um wieder zu trainieren, sprechen Sie einfach oder tippen Sie",
+    "uk": "Щоб знову почати тренування, просто поговоріть або напишіть",
+    "zh-cn": "要再次锻炼，只需说话或输入",
+    "it": "Per allenarti di nuovo, basta parlare o scrivere"
 }
+
+
+# finish_message = {
+#     "ru": "Чтобы тренироваться снова, используй /workout.\n Чтобы перейти в сообщество, посетите @workout.",
+#     "en": "To workout again, use /workout.\n To head over to the community, visit @workout.",
+#     "es": "Para entrenar nuevamente, usa /workout.\n Para unirte a la comunidad, visita @workout.",
+#     "fr": "Pour vous entraîner à nouveau, utilisez /workout.\n Pour rejoindre la communauté, visitez @workout.",
+#     "de": "Um erneut zu trainieren, benutze /workout.\n Um der Community beizutreten, besuche @workout.",
+#     "uk": "Щоб тренуватись знову, використовуйте /workout.\n Щоб перейти до спільноти, відвідайте @workout.",
+#     "zh-cn": "再次开始锻炼，请使用 /workout。\n 加入社区，请访问 @workout。",
+#     "it": "Per allenarti di nuovo, usa /workout.\n Per entrare nella community, visita @workout."
+# }

@@ -18,6 +18,8 @@ from utils.functions import get_user_language, get_language_from_state, get_plac
 from aiogram.filters.command import Command
 import re
 from datetime import datetime
+from bot.settings import TELEGRAM_CHANNEL_ID, BOT_TOKEN
+import aiohttp
 
 
 async def count_tokens(text: str) -> int:
@@ -25,6 +27,22 @@ async def count_tokens(text: str) -> int:
     encoding = tiktoken.get_encoding("cl100k_base")
     tokens = encoding.encode(text)
     return len(tokens)
+
+
+async def send_telegram_message_to_channel(text: str):
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+        payload = {
+            "chat_id": TELEGRAM_CHANNEL_ID,
+            "text": text,
+            "parse_mode": "HTML"
+        }
+        
+        async with aiohttp.ClientSession() as session:
+            await session.post(url, json=payload, timeout=10)
+
+    except Exception as e:
+        print(f"Failed to send message to channel: {e}")
 
 
 async def process_voice_message(message: Message) -> str:
@@ -60,6 +78,18 @@ class UserWorkoutCreationSteps:
         user_id = message.from_user.id
         data = await state.get_data()
         user_info = data.get(f"user_{user_id}", {})
+        if not user_info:
+            # print(f"Not find user in state in 'get_workout_info_step'")
+            user = await db.user_crud.read(id_=user_id)
+            user_info = {
+                "id": user.id,
+                "username": user.username,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "chosen_language": user.chosen_language
+            }
+            await state.update_data({f"user_{user_id}": user_info})
+
         language_code = user_info.get("chosen_language", "en")
 
         # Check requests
@@ -126,6 +156,8 @@ class UserWorkoutCreationSteps:
         youtube_queries = [exercise.get("youtube_query") for exercise in generated_workout]
         youtube_urls = await asyncio.gather(*[youtube.get_url(query) for query in youtube_queries])
         print(f"Generated YouTube links: {len(youtube_urls)}")
+
+        full_workout_text = f"<b>Prompt:</b>\n{instruction}\n\n<b>AI Answer:</b>\n"
         for exercise_number, (exercise, youtube_url) in enumerate(zip(generated_workout, youtube_urls), start=1):
             exercise_title = exercise.get("name")
             exercise_description = exercise.get("description")
@@ -133,12 +165,14 @@ class UserWorkoutCreationSteps:
 
             exercise_message_text = texts.exercise_text.get(language_code).format(
                 exercise_number, exercise_title, exercise_description, exercise_reps, youtube_url)
-
+            full_workout_text += f"{exercise_message_text}\n\n"
             await message.answer(text=exercise_message_text)
+
+        await send_telegram_message_to_channel(full_workout_text)
 
         last_message = texts.finish_message.get(language_code)
         await message.answer(text=last_message)
-        await state.clear()
+        await state.set_state(UserWorkoutState.workout_duration)
 
     @staticmethod
     async def get_workout_info_step(message: Message, state: FSMContext):
