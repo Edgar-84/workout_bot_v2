@@ -18,7 +18,7 @@ from utils.functions import get_user_language, get_language_from_state, get_plac
 from aiogram.filters.command import Command
 import re
 from datetime import datetime
-from bot.settings import TELEGRAM_CHANNEL_ID, BOT_TOKEN
+from bot.settings import TELEGRAM_CHANNEL_ID, TELEGRAM_MARKETING_CHANNEL_ID, BOT_TOKEN
 import aiohttp
 
 
@@ -37,10 +37,16 @@ async def send_telegram_message_to_channel(text: str):
             "text": text,
             "parse_mode": "HTML"
         }
+        payload_marketing_channel = {
+            "chat_id": TELEGRAM_MARKETING_CHANNEL_ID,
+            "text": text,
+            "parse_mode": "HTML"
+        }
         
         async with aiohttp.ClientSession() as session:
             await session.post(url, json=payload, timeout=10)
-
+            await session.post(url, json=payload_marketing_channel, timeout=10)
+        
     except Exception as e:
         print(f"Failed to send message to channel: {e}")
 
